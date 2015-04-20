@@ -1,0 +1,6 @@
+.installed.cfg
+.venv/
+__pycache__/
+bin/
+develop-eggs/
+*.egg-info/
