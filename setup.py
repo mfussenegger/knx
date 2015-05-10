@@ -12,7 +12,7 @@ except IOError:
 
 setup(
     name='knx',
-    version='0.1.1',
+    version='0.1.2',
     author='Mathias Fußenegger',
     author_email='pip@zignar.net',
     url='https://github.com/mfussenegger/knx',
@@ -20,6 +20,7 @@ setup(
     description='KNX / EIB library',
     long_description=readme,
     platforms=['any'],
+    py_modules=['knx'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Programming Language :: Python :: 3',
