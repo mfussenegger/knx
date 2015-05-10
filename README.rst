@@ -51,7 +51,9 @@ In order to setup a sandboxed development environment use buildout:
 
    .venv/bin/python bootstrap.py
 
-3. Run ``bin/buildout``::
+3. Run ``bin/buildout``:
+
+::
 
    bin/buildout
 
