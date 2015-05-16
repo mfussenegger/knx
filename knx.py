@@ -5,7 +5,6 @@
 import asyncio
 import socket
 import struct
-from threading import Thread
 from collections import namedtuple
 
 
@@ -154,6 +153,13 @@ def write(writer, addr, value):
         encode_data('HHBB', [EIB_GROUP_PACKET, addr, 0, KNXWRITE | value]))
 
 
+def read(writer, addr):
+    if isinstance(addr, (str, GroupAddress)):
+        addr = encode_ga(addr)
+    writer.write(
+        encode_data('HHBB', [EIB_GROUP_PACKET, addr, 0, 0]))
+
+
 class SocketWriterAdapter:
     def __init__(self, socket):
         self._socket = socket
@@ -174,6 +180,27 @@ class Connection:
         """ write to the given group address, see :func:`~knx.write`"""
 
         write(self.writer, addr, value)
+
+    def read(self, addr):
+        """ send a read request to the given address
+
+        this will instruct the bus system to send a telegram with the current
+        value.
+
+        In order to catch that telegram the ``AsyncKnx`` class has to be used.
+        See ``examples/example_async_knx.py``
+
+        So this means:
+
+            c.read('0/0/20')
+
+        Will cause the knx listener to retrieve 2 telegrams:
+
+        Telegram(src='0/0/0', dst='0/0/20', value='?')
+        Telegram(src='2/1/1', dst='0/0/20', value='1')
+
+        """
+        read(self.writer, addr)
 
     def close(self):
         self.socket.close()

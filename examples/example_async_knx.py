@@ -14,7 +14,7 @@ def logger():
 
 
 loop = asyncio.get_event_loop()
-knx = AsyncKnx(host='nuc', port=6720)  # same as: AsyncKnx()
+knx = AsyncKnx(host='nuc', port=6720)
 
 try:
     loop.run_until_complete(knx.listen(logger()))
