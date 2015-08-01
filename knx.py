@@ -12,6 +12,7 @@ EIB_OPEN_GROUPCON = 0x26
 EIB_GROUP_PACKET = 0x27
 
 KNXWRITE = 0x80
+KNXREAD = 0x00
 
 
 GroupAddress = namedtuple('GroupAddress', ['main', 'middle', 'sub'])
@@ -154,10 +155,28 @@ def write(writer, addr, value):
 
 
 def read(writer, addr):
+    """ send a read request to the given address
+
+    this will instruct the bus system to send a telegram with the current
+    value.
+
+    In order to catch that telegram the ``AsyncKnx`` class has to be used.
+    See ``examples/example_async_knx.py``
+
+    So this means:
+
+        read(writer, '0/0/20')
+
+    Will cause the knx listener to retrieve 2 telegrams:
+
+    Telegram(src='0/0/0', dst='0/0/20', value='?')
+    Telegram(src='2/1/1', dst='0/0/20', value='1')
+
+    """
     if isinstance(addr, (str, GroupAddress)):
         addr = encode_ga(addr)
     writer.write(
-        encode_data('HHBB', [EIB_GROUP_PACKET, addr, 0, 0]))
+        encode_data('HHBB', [EIB_GROUP_PACKET, addr, 0, KNXREAD]))
 
 
 class SocketWriterAdapter:
@@ -182,24 +201,7 @@ class Connection:
         write(self.writer, addr, value)
 
     def read(self, addr):
-        """ send a read request to the given address
-
-        this will instruct the bus system to send a telegram with the current
-        value.
-
-        In order to catch that telegram the ``AsyncKnx`` class has to be used.
-        See ``examples/example_async_knx.py``
-
-        So this means:
-
-            c.read('0/0/20')
-
-        Will cause the knx listener to retrieve 2 telegrams:
-
-        Telegram(src='0/0/0', dst='0/0/20', value='?')
-        Telegram(src='2/1/1', dst='0/0/20', value='1')
-
-        """
+        """ Calls :func:`knx.read` using the connections writer. """
         read(self.writer, addr)
 
     def close(self):
