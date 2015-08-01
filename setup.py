@@ -12,7 +12,7 @@ except IOError:
 
 setup(
     name='knx',
-    version='0.1.2',
+    version='0.1.3',
     author='Mathias Fußenegger',
     author_email='pip@zignar.net',
     url='https://github.com/mfussenegger/knx',
