@@ -39,7 +39,7 @@ class KnxTest(TestCase):
 
         self.assertEqual(1, len(output))
         decoded = output[0]
-        self.assertEqual(decoded.src, '2/1/8')
+        self.assertEqual(decoded.src, '1.1.8')
         self.assertEqual(decoded.dst, '0/0/20')
         self.assertEqual(decoded.value, '1')
 

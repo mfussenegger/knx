@@ -42,6 +42,19 @@ def encode_ga(addr):
     raise ValueError
 
 
+def decode_ia(ia):
+    """ decodes an individual address into its human readable string representation
+
+    >>> decode_ia(4606)
+    '1.1.254'
+
+    See also: http://www.openremote.org/display/knowledge/KNX+Individual+Address
+    """
+    if not isinstance(ia, int):
+        ia = struct.unpack('>H', ia)[0]
+    return '{}.{}.{}'.format((ia >> 12) & 0x1f, (ia >> 8) & 0x07, (ia) & 0xff)
+
+
 def decode_ga(ga):
     """ decodes a group address back into its human readable string representation
 
@@ -116,7 +129,7 @@ def telegram_decoder(target=None):
             num_read = 0
             continue
 
-        src = decode_ga(buf[4] << 8 | buf[5])
+        src = decode_ia(buf[4] << 8 | buf[5])
         dst = decode_ga(buf[6] << 8 | buf[7])
         data = buf[8:]
         if data[1] & 0xC0:
