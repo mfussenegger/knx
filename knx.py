@@ -100,6 +100,43 @@ def coroutine(func):
     return start
 
 
+def _decode(buf):
+    """ decodes a binary telegram in the format:
+
+        2 byte: src
+        2 byte: dst
+        X byte: data
+
+    Returns a Telegram namedtuple.
+
+    For read requests the value is -1
+    If the data had only 1 bytes the value is either 0 or 1
+    In case there was more than 1 byte the value will contain the raw data as
+    bytestring.
+
+    >>> _decode(bytearray([0x11, 0xFE, 0x00, 0x07, 0x00, 0x83]))
+    Telegram(src='1.1.254', dst='0/0/7', value=3)
+
+    >>> _decode(bytearray([0x11, 0x08, 0x00, 0x14, 0x00, 0x81]))
+    Telegram(src='1.1.8', dst='0/0/20', value=1)
+
+    """
+    src = decode_ia(buf[0] << 8 | buf[1])
+    dst = decode_ga(buf[2] << 8 | buf[3])
+
+    flg = buf[5] & 0xC0
+    data = buf[5:]
+
+    if flg == KNXREAD:
+        value = -1
+    elif len(data) == 1:
+        value = data[0] & 0x3F
+    else:
+        value = data[1:]
+
+    return Telegram(src, dst, value)
+
+
 @coroutine
 def telegram_decoder(target=None):
     """ a coroutine that receives binary telegrams and forwards them decoded
@@ -113,31 +150,32 @@ def telegram_decoder(target=None):
         2 byte: type
         2 byte: src
         2 byte: dst
-        2 byte: command data
+        X byte: command data
     """
     buf = b''
     num_read = 0
+    telegram_length = 2
     while True:
         data = (yield)
         num_read += len(data)
         buf += data
-        if num_read < 4:
+        if num_read < telegram_length:
             continue
+
+        telegram_length = (buf[0] << 0 | buf[1])
+        if num_read < telegram_length + 2:
+            continue
+
         ttype = (buf[2] << 8 | buf[3])
         if ttype != 39 or len(buf) < 6:
             buf = b''
             num_read = 0
+            telegram_length = 2
             continue
 
-        src = decode_ia(buf[4] << 8 | buf[5])
-        dst = decode_ga(buf[6] << 8 | buf[7])
-        data = buf[8:]
-        if data[1] & 0xC0:
-            value = str(data[1] & 0x3F)
-        else:
-            value = '?'
+        target.send(_decode(buf[4:]))
 
-        target.send(Telegram(src, dst, value))
+        telegram_length = 2
         num_read = 0
         buf = b''
 
@@ -182,7 +220,7 @@ def read(writer, addr):
 
     Will cause the knx listener to retrieve 2 telegrams:
 
-    Telegram(src='0/0/0', dst='0/0/20', value='?')
+    Telegram(src='0/0/0', dst='0/0/20', value=-1)
     Telegram(src='2/1/1', dst='0/0/20', value='1')
 
     """
