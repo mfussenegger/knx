@@ -5,14 +5,14 @@ from setuptools import setup
 
 
 try:
-    readme = open('README.rst', 'r').read()
+    with open('README.rst', 'r', encoding='utf-8') as f:
+        readme = f.read()
 except IOError:
     readme = ''
 
 
 setup(
     name='knx',
-    version='0.1.3',
     author='Mathias Fußenegger',
     author_email='pip@zignar.net',
     url='https://github.com/mfussenegger/knx',
