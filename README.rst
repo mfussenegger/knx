@@ -11,7 +11,8 @@ actors in the bus system::
 
 Or it can be used to listen to the traffic on the bus system::
 
-    >>> @coroutine
+    >>> import knx
+    >>> @knx.coroutine
     ... def logger():
     ...     while True:
     ...         telegram = (yield)
@@ -24,11 +25,14 @@ Or it can be used to listen to the traffic on the bus system::
 See the examples folder for a full working example.
 
 
-Requirements
-============
+Install & Requirements
+======================
 
-- Python 3.4
+- Python >= 3.4
 
+Install using pip::
+
+    $ pip install knx
 
 Disclaimer
 ==========
@@ -49,12 +53,10 @@ In order to setup a sandboxed development environment use buildout:
 
 2. Run ``bootstrap.py``::
 
-   .venv/bin/python bootstrap.py
+    .venv/bin/python bootstrap.py
 
-3. Run ``bin/buildout``:
+3. Run ``bin/buildout``::
 
-::
-
-   bin/buildout
+    bin/buildout
 
 Once these steps are done you'll be able to run tests using ``bin/test``.
