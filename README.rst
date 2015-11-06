@@ -2,6 +2,23 @@
 knx
 ===
 
+.. image:: https://travis-ci.org/mfussenegger/knx.svg?branch=master
+    :target: https://travis-ci.org/mfussenegger/knx
+    :alt: travis-ci
+
+.. image:: https://img.shields.io/pypi/wheel/crate.svg
+    :target: https://pypi.python.org/pypi/crate/
+    :alt: Wheel
+
+.. image:: https://img.shields.io/pypi/v/knx.svg
+   :target: https://pypi.python.org/pypi/knx/
+   :alt: PyPI Version
+
+.. image:: https://img.shields.io/pypi/pyversions/knx.svg
+   :target: https://pypi.python.org/pypi/knx/
+   :alt: Python Version
+
+
 A minimalistic KNX / EIB python library. It can be used to send telegrams to
 actors in the bus system::
 

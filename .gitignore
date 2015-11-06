@@ -6,3 +6,4 @@ __pycache__/
 bin/
 develop-eggs/
 *.egg-info/
+.eggs/
