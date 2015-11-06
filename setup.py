@@ -25,6 +25,9 @@ setup(
         'Development Status :: 4 - Beta',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'License :: OSI Approved :: MIT License',
-    ]
+    ],
+    use_scm_version=True,
+    setup_requires=['setuptools_scm']
 )
