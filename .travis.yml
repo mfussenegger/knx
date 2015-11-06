@@ -1,0 +1,15 @@
+sudo: false
+language: python
+python:
+  - 3.4
+  - 3.5
+
+install:
+  - python bootstrap.py
+  - ./bin/buildout install test
+
+script:
+  - bin/test
+
+notifications:
+  email: false
