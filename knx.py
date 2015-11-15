@@ -152,13 +152,13 @@ def telegram_decoder(target=None):
         2 byte: dst
         X byte: command data
     """
-    buf = b''
+    buf = bytearray()
     num_read = 0
     telegram_length = 2
     while True:
         data = (yield)
         num_read += len(data)
-        buf += data
+        buf.extend(data)
         if num_read < telegram_length:
             continue
 
@@ -168,7 +168,7 @@ def telegram_decoder(target=None):
 
         ttype = (buf[2] << 8 | buf[3])
         if ttype != 39 or len(buf) < 6:
-            buf = b''
+            buf = bytearray()
             num_read = 0
             telegram_length = 2
             continue
@@ -177,7 +177,7 @@ def telegram_decoder(target=None):
 
         telegram_length = 2
         num_read = 0
-        buf = b''
+        buf = bytearray()
 
 
 def write(writer, addr, value):
