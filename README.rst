@@ -6,8 +6,8 @@ knx
     :target: https://travis-ci.org/mfussenegger/knx
     :alt: travis-ci
 
-.. image:: https://img.shields.io/pypi/wheel/crate.svg
-    :target: https://pypi.python.org/pypi/crate/
+.. image:: https://img.shields.io/pypi/wheel/knx.svg
+    :target: https://pypi.python.org/pypi/knx/
     :alt: Wheel
 
 .. image:: https://img.shields.io/pypi/v/knx.svg
