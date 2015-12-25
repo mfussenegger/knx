@@ -19,27 +19,47 @@ knx
    :alt: Python Version
 
 
-A minimalistic KNX / EIB python library. It can be used to send telegrams to
-actors in the bus system::
+A minimalistic `KNX <https://en.wikipedia.org/wiki/KNX_%28standard%29>`_ / EIB
+python library.
+
+
+Sending telegrams
+-----------------
+
+This library can be used to send data telegrams to actuators in the bus system.
+
+For example in order to turn on a light the following code could be used::
 
     >>> from knx import connect
     >>> with connect() as c:
     ...     c.write('0/1/14', 1)
 
-Or it can be used to listen to the traffic on the bus system::
+
+Where ``0/1/14`` is the address of the light and ``1`` is the payload of the
+data telegram which indicates that the light should be turned on.
+
+
+Listening to telegrams
+----------------------
+
+This KNX library can also be used to listen to telegrams that are sent onto the
+bus system. For example if you simply want to log an entry each time a light is
+turned off or on::
+
 
     >>> import knx
+    >>> import asyncio
+
     >>> @knx.coroutine
     ... def logger():
     ...     while True:
     ...         telegram = (yield)
-    ...         print(telegram.src)
-    ...         print(telegram.dst)
-    ...         print(telegram.value)
+    ...         print('Telegram from {0} sent to {1} with value: {2}'.format(
+    ...               telegram.src, telegram.dst, telegram.value))
 
-    >>> knx.listen(logger())
-
-See the examples folder for a full working example.
+    >>> loop = asyncio.get_event_loop()
+    >>> k = knx.AsyncKnx(host='localhost', port=6720)
+    >>> loop.run_until_complete(k.listen(logger()))
 
 
 Install & Requirements
