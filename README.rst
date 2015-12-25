@@ -78,6 +78,13 @@ I've only tested this with `eibd
 <http://www.auto.tuwien.ac.at/~mkoegler/index.php/eibd>`_ 0.0.5 as a gateway.
 
 
+Alternatives
+============
+
+If you're looking for complete home automation solutions you might want to take
+a look at `home-assistant <https://github.com/balloob/home-assistant>`_ or
+`smarthome <https://github.com/mknx/smarthome>`_.
+
 Development
 ===========
 
