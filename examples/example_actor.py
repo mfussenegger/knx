@@ -49,6 +49,20 @@ class Actor:
         asyncio.ensure_future(self.write(self.address, newstate))
 
     def send(self, telegram):
+        """ This metod receives telegrams from the bus system.
+
+        It uses the telegram to update the state of the actor.  This way
+        toggle() will always do the right thing, even if the state of the actor
+        has been changed without using toggle (E.g. by using a regular light
+        switch)
+
+        Further down in ``main()`` an instance of this ``Actor`` class is being
+        passed to `AsyncKnx.listen`` as a ``receiver``.
+
+        A ``receiver`` is any object that has a send method with one argument
+        (the telegram).
+        """
+
         if telegram.dst != self.address:
             # this telegram is for a different actor
             return
