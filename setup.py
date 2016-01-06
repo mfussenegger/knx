@@ -29,5 +29,6 @@ setup(
         'License :: OSI Approved :: MIT License',
     ],
     use_scm_version=True,
-    setup_requires=['setuptools_scm']
+    setup_requires=['setuptools_scm'],
+    test_suite='tests'
 )
