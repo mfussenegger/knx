@@ -241,7 +241,7 @@ class SocketWriterAdapter:
 class Connection:
     def __init__(self, host='localhost', port=6720):
         s = socket.socket()
-        s.connect((host, port))
+        s.connect((host, int(port)))
         s.send(encode_data('HHB', [EIB_OPEN_GROUPCON, 0, 0]))
         self.socket = s
         self.writer = SocketWriterAdapter(s)
@@ -268,7 +268,7 @@ class Connection:
 class AsyncKnx:
     def __init__(self, host='localhost', port=6720):
         self.host = host
-        self.port = port
+        self.port = int(port)
         self.writer = None
         self.reader = None
 
@@ -277,6 +277,7 @@ class AsyncKnx:
         self.reader, self.writer = yield from \
             asyncio.open_connection(self.host, self.port)
         self.writer.write(encode_data('HHB', [EIB_OPEN_GROUPCON, 0, 0]))
+        return self.reader, self.writer
 
     @asyncio.coroutine
     def listen(self, receiver, decoder=telegram_decoder):
@@ -305,8 +306,10 @@ class AsyncKnx:
         """ write to the given group address, see :func:`~knx.write`"""
 
         if not self.writer:
-            yield from self.connect()
-        yield from write(self.writer, addr, value)
+            _, writer = yield from self.connect()
+        else:
+            writer = self.writer
+        write(writer, addr, value)
 
     def close(self):
         if self.writer:
