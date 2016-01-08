@@ -75,7 +75,8 @@ Disclaimer
 ==========
 
 I've only tested this with `eibd
-<http://www.auto.tuwien.ac.at/~mkoegler/index.php/eibd>`_ 0.0.5 as a gateway.
+<http://www.auto.tuwien.ac.at/~mkoegler/index.php/eibd>`_ 0.0.5 and the fork
+`knxd <https://github.com/knxd/knxd>`_ as a gateway.
 
 
 Alternatives
