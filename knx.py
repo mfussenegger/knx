@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-import asyncio
+import asyncio as aio
 import socket
 import struct
 from collections import namedtuple
@@ -230,6 +230,39 @@ def read(writer, addr):
         encode_data('HHBB', [EIB_GROUP_PACKET, addr, 0, KNXREAD]))
 
 
+@aio.coroutine
+def listen(reader, receiver, decoder=telegram_decoder):
+    decoder = decoder(receiver)
+    while True:
+        data = yield from reader.read(100)
+        decoder.send(data)
+
+
+@aio.coroutine
+def open_connection(host, port, *args, **kwargs):
+    reader, writer = yield from aio.open_connection(host, port, *args, **kwargs)
+    writer.write(encode_data('HHB', [EIB_OPEN_GROUPCON, 0, 0]))
+    return reader, writer
+
+
+@aio.coroutine
+def bus_monitor(receiver, host='localhost', port=6720, decoder=telegram_decoder):
+    """ creates a connection to host:port and starts to receive telegrams
+
+    :param receiver: a coroutine or instance of a class that has a `send`
+                     method which takes one argument to receive a telegram.
+    :param host: hostname to which to connect to
+    :param port: port to which to connect to
+    :param decoder: optional alternative decoder to transform binary data into
+                    telegrams
+
+    received telegrams will be sent to the receiver.
+    """
+    reader, writer = yield from open_connection(host, port)
+    yield from listen(reader, receiver, decoder)
+    writer.close()
+
+
 class SocketWriterAdapter:
     def __init__(self, socket):
         self._socket = socket
@@ -241,6 +274,8 @@ class SocketWriterAdapter:
 class Connection:
     def __init__(self, host='localhost', port=6720):
         s = socket.socket()
+        self._host = host
+        self._port = int(port)
         s.connect((host, int(port)))
         s.send(encode_data('HHB', [EIB_OPEN_GROUPCON, 0, 0]))
         self.socket = s
@@ -255,6 +290,11 @@ class Connection:
         """ Calls :func:`knx.read` using the connections writer. """
         read(self.writer, addr)
 
+    @aio.coroutine
+    def bus_monitor(self, receiver, decoder=telegram_decoder):
+        yield from bus_monitor(
+            receiver=receiver, host=self._host, port=self._port, decoder=decoder)
+
     def close(self):
         self.socket.close()
 
@@ -263,57 +303,6 @@ class Connection:
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
-
-
-class AsyncKnx:
-    def __init__(self, host='localhost', port=6720):
-        self.host = host
-        self.port = int(port)
-        self.writer = None
-        self.reader = None
-
-    @asyncio.coroutine
-    def connect(self):
-        self.reader, self.writer = yield from \
-            asyncio.open_connection(self.host, self.port)
-        self.writer.write(encode_data('HHB', [EIB_OPEN_GROUPCON, 0, 0]))
-        return self.reader, self.writer
-
-    @asyncio.coroutine
-    def listen(self, receiver, decoder=telegram_decoder):
-        """ start to receive data from the StreamReader and forward it decoded
-        to the receiver
-
-        :param receiver:
-            a coroutine that will receive ``Telegram``s
-        :param decoder:
-            a function that takes one argument (which will be the given
-            receiver) and returns a coroutine.  The coroutine will be fed
-            binary telegrams.  The default decoder decodes those binary
-            telegrams into ``Telegram`` namedtuples and forwards them to the
-            receiver
-        """
-        if not self.reader:
-            yield from self.connect()
-
-        decoder = decoder(receiver)
-        while True:
-            data = yield from self.reader.read(100)
-            decoder.send(data)
-
-    @asyncio.coroutine
-    def write(self, addr, value):
-        """ write to the given group address, see :func:`~knx.write`"""
-
-        if not self.writer:
-            _, writer = yield from self.connect()
-        else:
-            writer = self.writer
-        write(writer, addr, value)
-
-    def close(self):
-        if self.writer:
-            self.writer.close()
 
 
 def connect(host='localhost', port=6720):

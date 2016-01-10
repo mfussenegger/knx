@@ -58,8 +58,8 @@ turned off or on::
     ...               telegram.src, telegram.dst, telegram.value))
 
     >>> loop = asyncio.get_event_loop()
-    >>> k = knx.AsyncKnx(host='localhost', port=6720)
-    >>> loop.run_until_complete(k.listen(logger()))
+    >>> coro = knx.bus_monitor(logger(), host='localhost', port=6720)
+    >>> loop.run_until_complete(coro)
 
 
 Install & Requirements
