@@ -99,7 +99,7 @@ def main():
     loop = asyncio.get_event_loop()
     loop.add_signal_handler(signal.SIGUSR1, actor.toggle)
     print('Use "kill -USR1 {pid}" to toggle state'.format(pid=os.getpid()))
-    conn.read(actor.address)  # read request for initial state
+    loop.call_later(2, lambda: conn.read(actor.address))  # read request for initial state
     try:
         loop.run_until_complete(conn.bus_monitor(actor))
     except KeyboardInterrupt:
