@@ -2,18 +2,12 @@
 # -*- coding: utf-8 -*-
 
 
-from unittest import TestCase, TestSuite, makeSuite
+from unittest import TestCase, main
 from doctest import DocTestSuite
-from knx import (
-    encode_ga,
-    decode_ga,
-    telegram_decoder,
-    coroutine,
-    encode_data
-)
+import knx
 
 
-@coroutine
+@knx.coroutine
 def f(output):
     while True:
         x = (yield)
@@ -22,27 +16,26 @@ def f(output):
 
 class KnxTest(TestCase):
     def test_encode_ga(self):
-        x = encode_ga('0/1/14')
+        x = knx.encode_ga('0/1/14')
         self.assertEqual(270, x)
 
     def test_decode_ga(self):
-        x = decode_ga(270)
+        x = knx.decode_ga(270)
         self.assertEqual('0/1/14', x)
 
     def test_encode_data(self):
-        d = encode_data('HHB', (27, 1, 0))
+        d = knx.encode_data('HHB', (27, 1, 0))
         self.assertEqual(b'\x00\x05\x00\x1b\x00\x01\x00', d)
-
 
     def decode(self, b):
         output = []
-        decoder = telegram_decoder(f(output))
+        decoder = knx.telegram_decoder(f(output))
         decoder.send(b)
         return output
 
     def test_telegram_decoder_receiving_single_bytes(self):
         output = []
-        decoder = telegram_decoder(f(output))
+        decoder = knx.telegram_decoder(f(output))
         decoder.send(b'\x00')
         decoder.send(b'\x08')
         decoder.send(b'\x00')
@@ -87,9 +80,10 @@ class KnxTest(TestCase):
         self.assertEqual(decoded.value, b'\x03\xA3\x03')
 
 
+def load_tests(loader, tests, ignore):
+    tests.addTests(DocTestSuite(knx))
+    return tests
 
-def test_suite():
-    return TestSuite([
-        makeSuite(KnxTest),
-        DocTestSuite('knx')
-    ])
+
+if __name__ == "__main__":
+    main()
