@@ -3,7 +3,7 @@
 
 
 """
-This is an example that makes use of all methods of the ``AsyncKnx`` class.
+This is an example that showcases the bus_monitor function.
 
 It is a command line application that can be used to toggle the state of a
 single actor (a Light for example).
@@ -84,8 +84,15 @@ def parse_host_and_port(host):
 
 
 def main():
-    # usage: python example_actor.py eibd_host[:port] actor_address
-    # e.g. python example_actor.py localhost '0/0/20'
+    """
+    Monitor telegrams for a specific actor and toggle it's state using kill -USR1
+
+    Usage:
+        python example_actor.py eibd_host[:port] actor_address
+
+    Example:
+        python example_actor.py localhost '0/0/20'
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("host", type=str)
     parser.add_argument("actor", type=str)
@@ -99,7 +106,7 @@ def main():
     loop = asyncio.get_event_loop()
     loop.add_signal_handler(signal.SIGUSR1, actor.toggle)
     print('Use "kill -USR1 {pid}" to toggle state'.format(pid=os.getpid()))
-    loop.call_later(2, lambda: conn.read(actor.address))  # read request for initial state
+    loop.call_soon(lambda: conn.read(actor.address))  # read request for initial state
     try:
         loop.run_until_complete(conn.bus_monitor(actor))
     except KeyboardInterrupt:
