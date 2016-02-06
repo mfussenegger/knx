@@ -91,3 +91,10 @@ Development
 
 Edit ``knx.py`` in your favorite editor and run tests using ``python -m
 unittest`` or ``python tests.py``.
+
+If you want to run the examples without first installing this library you can use::
+
+    python -m examples.actor -- hostname '0/0/20'
+
+(Replace actor with the appropriate module name and omit the arguments if the
+module doesn't require them)
