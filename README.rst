@@ -89,19 +89,5 @@ a look at `home-assistant <https://github.com/balloob/home-assistant>`_ or
 Development
 ===========
 
-In order to setup a sandboxed development environment use buildout:
-
-1. Create a virtual environment to have a python without any third-party
-   packages in it's ``sys.path``: (Kinda Optional)::
-
-    python -m venv .venv
-
-2. Run ``bootstrap.py``::
-
-    .venv/bin/python bootstrap.py
-
-3. Run ``bin/buildout``::
-
-    bin/buildout
-
-Once these steps are done you'll be able to run tests using ``bin/test``.
+Edit ``knx.py`` in your favorite editor and run tests using ``python -m
+unittest`` or ``python tests.py``.
