@@ -14,6 +14,8 @@ EIB_GROUP_PACKET = 0x27
 KNXWRITE = 0x80
 KNXREAD = 0x00
 
+DT_BIT = '1.*'
+DT_8BITS_SIGNED = '6.*'
 
 GroupAddress = namedtuple('GroupAddress', ['main', 'middle', 'sub'])
 Telegram = namedtuple('Telegram', ['src', 'dst', 'value'])
@@ -180,7 +182,7 @@ def telegram_decoder(target=None):
         buf = bytearray()
 
 
-def write(writer, addr, value):
+def write(writer, addr, value, dtype=None):
     """ send a KNXWRITE request to the given group addr
 
     :param writer:
@@ -192,6 +194,10 @@ def write(writer, addr, value):
         The group addr to which the telegram should be sent to.
         Might be a GroupAddress named tuple or string. E.g. '0/1/14'
 
+    :param dtype:
+        Knx data type sent to the bus.
+    :type dtype: str
+
     :param value:
         The value to sent. Either 1 or 0
 
@@ -201,8 +207,14 @@ def write(writer, addr, value):
         addr = encode_ga(addr)
     if isinstance(value, str):
         value = int(value)
-    writer.write(
-        encode_data('HHBB', [EIB_GROUP_PACKET, addr, 0, KNXWRITE | value]))
+    if dtype is None or dtype == DT_BIT:
+        writer.write(
+            encode_data('HHBB', [EIB_GROUP_PACKET, addr, 0, KNXWRITE | value]))
+    elif dtype == DT_8BITS_SIGNED:
+        writer.write(
+            encode_data('HHBBB', [EIB_GROUP_PACKET, addr, 0, KNXWRITE, value]))
+    else:
+        raise NotImplementedError('Write for type {} not yet implemented'.format(dtype))
 
 
 def read(writer, addr):
@@ -281,10 +293,10 @@ class Connection:
         self.socket = s
         self.writer = SocketWriterAdapter(s)
 
-    def write(self, addr, value):
+    def write(self, addr, value, dtype=None):
         """ write to the given group address, see :func:`~knx.write`"""
 
-        write(self.writer, addr, value)
+        write(self.writer, addr, value, dtype)
 
     def read(self, addr):
         """ Calls :func:`knx.read` using the connections writer. """

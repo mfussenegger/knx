@@ -13,7 +13,7 @@ except IOError:
 
 setup(
     name='knx',
-    author='Mathias Fußenegger',
+    author='Mathias Fußenegger & Laurent Breuillard',
     author_email='pip@zignar.net',
     url='https://github.com/mfussenegger/knx',
     license='MIT',
