@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 
 import asyncio as aio
@@ -43,7 +42,7 @@ def encode_ga(addr):
 
 
 def decode_ia(ia):
-    """ decodes an individual address into its human readable string representation
+    """ Decode an individual address into human readable string representation
 
     >>> decode_ia(4606)
     '1.1.254'
@@ -56,7 +55,7 @@ def decode_ia(ia):
 
 
 def decode_ga(ga):
-    """ decodes a group address back into its human readable string representation
+    """ Decodes a group address into human readable string representation
 
     >>> decode_ga(270)
     '0/1/14'
@@ -230,23 +229,23 @@ def read(writer, addr):
         encode_data('HHBB', [EIB_GROUP_PACKET, addr, 0, KNXREAD]))
 
 
-@aio.coroutine
-def listen(reader, receiver, decoder=telegram_decoder):
+async def listen(reader, receiver, decoder=telegram_decoder):
     decoder = decoder(receiver)
     while True:
-        data = yield from reader.read(100)
+        data = await reader.read(100)
         decoder.send(data)
 
 
-@aio.coroutine
-def open_connection(host, port, *args, **kwargs):
-    reader, writer = yield from aio.open_connection(host, port, *args, **kwargs)
+async def open_connection(host, port, *args, **kwargs):
+    reader, writer = await aio.open_connection(host, port, *args, **kwargs)
     writer.write(encode_data('HHB', [EIB_OPEN_GROUPCON, 0, 0]))
     return reader, writer
 
 
-@aio.coroutine
-def bus_monitor(receiver, host='localhost', port=6720, decoder=telegram_decoder):
+async def bus_monitor(receiver,
+                      host='localhost',
+                      port=6720,
+                      decoder=telegram_decoder):
     """ creates a connection to host:port and starts to receive telegrams
 
     :param receiver: a coroutine or instance of a class that has a `send`
@@ -258,8 +257,8 @@ def bus_monitor(receiver, host='localhost', port=6720, decoder=telegram_decoder)
 
     received telegrams will be sent to the receiver.
     """
-    reader, writer = yield from open_connection(host, port)
-    yield from listen(reader, receiver, decoder)
+    reader, writer = await open_connection(host, port)
+    await listen(reader, receiver, decoder)
     writer.close()
 
 
@@ -290,10 +289,13 @@ class Connection:
         """ Calls :func:`knx.read` using the connections writer. """
         read(self.writer, addr)
 
-    @aio.coroutine
-    def bus_monitor(self, receiver, decoder=telegram_decoder):
-        yield from bus_monitor(
-            receiver=receiver, host=self._host, port=self._port, decoder=decoder)
+    async def bus_monitor(self, receiver, decoder=telegram_decoder):
+        await bus_monitor(
+            receiver=receiver,
+            host=self._host,
+            port=self._port,
+            decoder=decoder
+        )
 
     def close(self):
         self.socket.close()
