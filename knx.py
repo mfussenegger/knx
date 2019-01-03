@@ -66,9 +66,10 @@ def decode_ga(ga):
 
 
 def encode_data(fmt, data):
-    """ encode the data using struct.pack
+    r""" encode the data using struct.pack
 
-    >>> encoded = encode_data('HHB', (27, 1, 0))
+    >>> encode_data('HHB', (27, 1, 0))
+    b'\x00\x05\x00\x1b\x00\x01\x00'
 
     = ==================
     >   big endian
@@ -78,7 +79,7 @@ def encode_data(fmt, data):
     """
     ret = struct.pack('>' + fmt, *data)
     if len(ret) < 2 or len(ret) > 0xffff:
-        raise ValueError('(encoded) data length needs to be between 2 and 65536')
+        raise ValueError('Encoded data length needs to be between 2 and 65536')
     # prepend data length
     return struct.pack('>H', len(ret)) + ret
 
@@ -179,7 +180,26 @@ def telegram_decoder(target=None):
         buf = bytearray()
 
 
-def write(writer, addr, value):
+def encode_dt_bit(addr, value):
+    r""" Encode a bit (0/1)
+
+    :param addr:
+        A encoded GroupAddress
+
+    :param value:
+        The value to send
+
+    >>> encode_dt_bit(encode_ga(GroupAddress(0, 1, 14)), 1)
+    b"\x00\x06\x00'\x01\x0e\x00\x81"
+
+    """
+    return encode_data(
+        'HHBB',
+        [EIB_GROUP_PACKET, addr, 0, KNXWRITE | int(value)]
+    )
+
+
+def write(writer, addr, value, encode=None):
     """ send a KNXWRITE request to the given group addr
 
     :param writer:
@@ -192,16 +212,18 @@ def write(writer, addr, value):
         Might be a GroupAddress named tuple or string. E.g. '0/1/14'
 
     :param value:
-        The value to sent. Either 1 or 0
+        The value to send.
 
+    :param encode:
+        The encode function used to encode the addr and value into a message.
+        Defaults to `encode_dt_bit`.
+        The function receives two arguments.
+        The encoded group address and the value
     """
-
     if isinstance(addr, (str, GroupAddress)):
         addr = encode_ga(addr)
-    if isinstance(value, str):
-        value = int(value)
-    writer.write(
-        encode_data('HHBB', [EIB_GROUP_PACKET, addr, 0, KNXWRITE | value]))
+    encode = encode or encode_dt_bit
+    writer.write(encode(addr, value))
 
 
 def read(writer, addr):
@@ -280,10 +302,10 @@ class Connection:
         self.socket = s
         self.writer = SocketWriterAdapter(s)
 
-    def write(self, addr, value):
+    def write(self, addr, value, encode=None):
         """ write to the given group address, see :func:`~knx.write`"""
 
-        write(self.writer, addr, value)
+        write(self.writer, addr, value, encode=encode)
 
     def read(self, addr):
         """ Calls :func:`knx.read` using the connections writer. """
