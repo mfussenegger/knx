@@ -4,7 +4,7 @@
 import asyncio as aio
 import socket
 import struct
-from collections import namedtuple
+from typing import NamedTuple, Any, Union, Iterable, Callable
 
 
 EIB_OPEN_GROUPCON = 0x26
@@ -14,11 +14,19 @@ KNXWRITE = 0x80
 KNXREAD = 0x00
 
 
-GroupAddress = namedtuple('GroupAddress', ['main', 'middle', 'sub'])
-Telegram = namedtuple('Telegram', ['src', 'dst', 'value'])
+class GroupAddress(NamedTuple):
+    main: int
+    middle: int
+    sub: int
 
 
-def encode_ga(addr):
+class Telegram(NamedTuple):
+    src: str
+    dst: str
+    value: Any
+
+
+def encode_ga(addr: Union[str, GroupAddress]) -> int:
     """ converts a group address to an integer
 
     >>> encode_ga('0/1/14')
@@ -41,7 +49,7 @@ def encode_ga(addr):
     raise ValueError
 
 
-def decode_ia(ia):
+def decode_ia(ia: int) -> str:
     """ Decode an individual address into human readable string representation
 
     >>> decode_ia(4606)
@@ -54,7 +62,7 @@ def decode_ia(ia):
     return '{}.{}.{}'.format((ia >> 12) & 0x1f, (ia >> 8) & 0x07, (ia) & 0xff)
 
 
-def decode_ga(ga):
+def decode_ga(ga: int) -> str:
     """ Decodes a group address into human readable string representation
 
     >>> decode_ga(270)
@@ -65,7 +73,7 @@ def decode_ga(ga):
     return '{}/{}/{}'.format((ga >> 11) & 0x1f, (ga >> 8) & 0x07, (ga) & 0xff)
 
 
-def encode_data(fmt, data):
+def encode_data(fmt: str, data: Iterable) -> bytes:
     r""" encode the data using struct.pack
 
     >>> encode_data('HHB', (27, 1, 0))
@@ -100,7 +108,7 @@ def coroutine(func):
     return start
 
 
-def _decode(buf):
+def _decode(buf: bytearray) -> Telegram:
     """ decodes a binary telegram in the format:
 
         2 byte: src
@@ -180,7 +188,7 @@ def telegram_decoder(target=None):
         buf = bytearray()
 
 
-def encode_dt_bit(addr, value):
+def encode_dt_bit(addr: int, value: Any) -> bytes:
     r""" Encode a bit (0/1)
 
     :param addr:
@@ -195,11 +203,14 @@ def encode_dt_bit(addr, value):
     """
     return encode_data(
         'HHBB',
-        [EIB_GROUP_PACKET, addr, 0, KNXWRITE | int(value)]
+        (EIB_GROUP_PACKET, addr, 0, KNXWRITE | int(value))
     )
 
 
-def write(writer, addr, value, encode=None):
+def write(writer,
+          addr: Union[str, GroupAddress],
+          value: Any,
+          encode: Callable[[int, Any], bytes] = None):
     """ send a KNXWRITE request to the given group addr
 
     :param writer:
@@ -248,7 +259,7 @@ def read(writer, addr):
     if isinstance(addr, (str, GroupAddress)):
         addr = encode_ga(addr)
     writer.write(
-        encode_data('HHBB', [EIB_GROUP_PACKET, addr, 0, KNXREAD]))
+        encode_data('HHBB', (EIB_GROUP_PACKET, addr, 0, KNXREAD)))
 
 
 async def listen(reader, receiver, decoder=telegram_decoder):
@@ -260,7 +271,7 @@ async def listen(reader, receiver, decoder=telegram_decoder):
 
 async def open_connection(host, port, *args, **kwargs):
     reader, writer = await aio.open_connection(host, port, *args, **kwargs)
-    writer.write(encode_data('HHB', [EIB_OPEN_GROUPCON, 0, 0]))
+    writer.write(encode_data('HHB', (EIB_OPEN_GROUPCON, 0, 0)))
     return reader, writer
 
 
@@ -298,7 +309,7 @@ class Connection:
         self._host = host
         self._port = int(port)
         s.connect((host, int(port)))
-        s.send(encode_data('HHB', [EIB_OPEN_GROUPCON, 0, 0]))
+        s.send(encode_data('HHB', (EIB_OPEN_GROUPCON, 0, 0)))
         self.socket = s
         self.writer = SocketWriterAdapter(s)
 
